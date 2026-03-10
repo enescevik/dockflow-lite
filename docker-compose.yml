@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: dockflow
+      POSTGRES_USER: dockflow
+      POSTGRES_PASSWORD: dockflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dockflow -d dockflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgres://dockflow:dockflow@db:5432/dockflow
+      DEMO_USER_EMAIL: dispatcher@demo.local
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      PORT: 3000
+      API_BASE_URL: http://api:3001
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  pg_data:
