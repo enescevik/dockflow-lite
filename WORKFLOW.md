@@ -15,11 +15,11 @@ hooks:
     if [ -f yarn.lock ]; then yarn install --frozen-lockfile; fi
 
 agent:
-  max_concurrent_agents: 2
-  max_turns: 12
+  max_concurrent_agents: 1
+  max_turns: 10
 
 codex:
-  command: "$CODEX_BIN app-server"
+  command: "codex app-server"
 
 server:
   port: 4001
@@ -29,31 +29,35 @@ You are working on a Linear issue for DockFlow Lite.
 
 Project summary:
 DockFlow Lite is a lightweight logistics application for warehouse dock appointment scheduling.
-The product reduces truck waiting time and dock congestion by letting operators:
+The system reduces truck waiting time and dock congestion by helping operators:
 - create appointments
 - assign dock doors
 - check trucks in
 - move appointments through loading lifecycle states
 - monitor simple operational metrics
 
-Your mission:
-Implement only the scope of the current Linear issue in a safe, reviewable way.
+Mission:
+Implement only the current Linear issue in a safe, minimal, reviewable way.
 
-Repository guidance:
-- Read AGENTS.md first.
-- Read docs/product.md for business rules.
-- Read docs/architecture.md before making structural changes.
-- Keep the implementation simple.
-- Prefer minimum viable solutions over broad abstractions.
-- Respect module boundaries.
-- Do not expand scope unless necessary to complete the issue safely.
+Read first:
+1. AGENTS.md
+2. docs/product.md
+3. docs/architecture.md only if structural changes are needed
 
-Important architectural rules:
+Behavior rules:
+- Stay strictly within the current issue scope.
+- Prefer minimum viable implementation over broad abstractions.
+- Do not redesign the architecture unless the issue explicitly requires it.
+- Keep changes small, readable, and easy to review.
+- Do not invent hidden business rules.
+- If a requirement is unclear, choose the safest minimal interpretation and document the assumption.
+
+Architecture rules:
 - frontend must never access database directly
 - controllers/routes must stay thin
 - business logic belongs in services/use-cases
 - persistence logic belongs in repository/data-access layer
-- do not introduce unnecessary frameworks or platform patterns
+- do not introduce unnecessary frameworks, platform layers, or abstractions
 
 Domain rules:
 Main entities:
@@ -78,29 +82,48 @@ Allowed transitions:
 - checked_in -> cancelled
 - loading -> completed
 
-Execution rules:
-- implement only the current issue
-- keep changes small and readable
-- add or update tests when behavior changes
-- update docs when behavior or API contract changes
-- do not invent hidden business requirements
-- if a product rule is unclear, choose the safest minimal interpretation and note it clearly
+Git workflow rules:
+- Never work directly on main.
+- Before changing code, create a feature branch for the issue.
+- Branch format:
+  feat/<issue-identifier>-<short-description>
+  Example: feat/DOC-5-bootstrap
+- Perform all code changes on that branch.
+- When implementation is complete:
+  1. git add .
+  2. git commit -m "<issue-identifier>: implement issue requirements"
+  3. git push origin <branch-name>
+
+PoC-only merge rule:
+- This repository is currently in PoC mode.
+- After pushing the feature branch, merge it into main automatically.
+- Use:
+  1. git checkout main
+  2. git pull --ff-only origin main
+  3. git merge --no-ff <branch-name>
+  4. git push origin main
+- After merge, the feature branch may be deleted.
+- This rule is temporary and should not be used in production workflows.
 
 Validation before handoff:
-1. run lint
-2. run tests
-3. run e2e if a user flow changed
-4. verify the app still boots if setup was affected
+1. run lint if available
+2. run tests if available
+3. run e2e only if the user flow changed and the project supports it
+4. verify the app still boots if setup/runtime was affected
 5. summarize:
    - what changed
-   - what was tested
-   - any assumptions made
+   - what was validated
+   - assumptions made
    - any follow-up work needed
+
+Documentation rules:
+- Update docs only when behavior, setup, architecture, or API contracts changed.
+- Do not rewrite unrelated documentation.
 
 When blocked:
 - explain the blocker clearly
-- do not fabricate credentials, secrets, or product rules
+- do not fabricate credentials, secrets, or requirements
 - prefer partial safe progress over risky assumptions
 
-Review handoff:
-When implementation is complete and validated, prepare the issue for human review with a concise implementation summary.
+Final handoff:
+At the end of the run, leave a concise implementation summary suitable for human review.

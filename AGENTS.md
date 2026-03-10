@@ -4,116 +4,88 @@
 
 This repository contains DockFlow Lite, a small logistics application for warehouse dock appointment scheduling.
 
-Agents working in this repository must optimize for:
-- clarity
-- maintainability
-- small safe changes
-- testability
-- explicit documentation
+The goal is not to build a generic platform.
+The goal is to build a small, working, understandable MVP.
 
 ---
 
-## Product Intent
+## Product intent
 
-DockFlow Lite reduces truck waiting time and dock congestion by giving warehouse teams a simple dock appointment workflow:
-- plan truck arrivals
+DockFlow Lite reduces truck waiting time and dock congestion by helping warehouse teams:
+
+- schedule truck arrivals
 - assign dock doors
 - check trucks in
-- manage loading lifecycle
-- monitor delays and utilization
+- move appointments through a simple loading lifecycle
+- monitor a few key operational metrics
 
-This is an MVP. Simplicity is preferred over sophistication.
-
----
-
-## Repository Principles
-
-- Keep the code boring and understandable.
-- Prefer explicit code over clever abstractions.
-- Do not build speculative platform features.
-- Stay within the requested scope.
-- Fix root causes when practical, not only symptoms.
-- Update docs when behavior or architecture changes.
-- Do not silently change product rules.
+This is a logistics PoC.
+Prefer simple and useful over complete and abstract.
 
 ---
 
-## Architecture Rules
+## Working style
 
-### Layering
-- frontend must never access the database directly
-- controllers/routes must stay thin
-- business logic belongs in services/use-cases
-- persistence logic belongs in repositories/data-access modules
-- domain rules should not be hidden inside controllers or UI components
+When implementing a task:
 
-### Boundaries
-- UI should call API only
-- API modules should respect tenant boundaries
-- persistence should not leak into presentation logic
-- avoid circular dependencies
-- avoid cross-module imports unless clearly justified
+1. read the current Linear issue carefully
+2. read only the minimum repository context needed
+3. stay inside the scope of the issue
+4. make the smallest safe implementation that solves the task
+5. validate the result
+6. summarize clearly
 
-### Simplicity
-- do not introduce CQRS/event bus/plugin systems in MVP unless explicitly requested
-- avoid premature abstraction
-- avoid over-generalizing tenant logic
-- avoid infrastructure complexity that is not required for local PoC success
+Do not redesign the system unless the issue explicitly requires it.
 
 ---
 
-## Coding Expectations
+## What to read first
 
-- Use clear names.
-- Keep functions small where reasonable.
-- Prefer readable branching over dense one-liners.
-- Add comments only when they clarify intent or a non-obvious decision.
-- Preserve consistent formatting and lint rules.
-- Reuse existing helpers before creating new ones.
+Always read in this order:
+
+1. `AGENTS.md`
+2. `docs/product.md`
+3. the current issue description
+
+Read `docs/architecture.md` only if:
+- the issue changes structure or layering
+- new modules are added
+- persistence or API boundaries are affected
+
+Do not read unrelated files unless necessary.
+
+---
+
+## Core engineering principles
+
+- Prefer boring and maintainable code.
+- Use simple names and simple control flow.
+- Keep functions and modules understandable.
+- Avoid speculative abstractions.
+- Avoid framework-heavy solutions for simple problems.
+- Do not introduce infrastructure complexity without clear need.
 - Do not leave dead code behind.
 
 ---
 
-## Testing Expectations
+## Layering rules
 
-When behavior changes:
-- update or add unit tests where appropriate
-- update integration tests where appropriate
-- update Playwright smoke/e2e tests if user flow changes
-
-Before considering a task done:
-- build passes
-- lint passes
-- tests pass
-- seed/demo flow still works
+- frontend must never access the database directly
+- routes/controllers must stay thin
+- business rules belong in services/use-cases
+- persistence belongs in repositories/data-access code
+- presentation logic must not contain hidden domain rules
+- avoid circular dependencies
 
 ---
 
-## Documentation Expectations
-
-Update docs whenever any of the following changes:
-- domain rules
-- API contract
-- status transition behavior
-- setup/run steps
-- architecture assumptions
-
-Likely docs to update:
-- `README.md`
-- `docs/product.md`
-- `docs/architecture.md`
-- `docs/definition-of-done.md`
-
----
-
-## Domain Rules for MVP
+## MVP domain rules
 
 Main entities:
 - Tenant
 - Warehouse
 - DockDoor
 - Appointment
-- CheckInEvent (optional implementation detail if used)
 
 Appointment statuses:
 - planned
@@ -131,51 +103,118 @@ Allowed transitions:
 - checked_in -> cancelled
 - loading -> completed
 
-Do not invent additional statuses without explicit requirement.
+Do not invent extra statuses.
 
 ---
 
-## UI Rules
+## Tenant rules
 
-- Keep forms simple.
-- Prioritize usability over visual polish.
-- Make key appointment states visible in list/detail views.
-- Validation messages should be clear and concrete.
-- Dashboard can be simple cards/tables; no complex charting required unless explicitly requested.
-
----
-
-## Database and Tenant Rules
-
-- every warehouse, dock door, and appointment belongs to a tenant
-- warehouse must belong to the active tenant
-- dock door must belong to the selected warehouse and tenant
-- inactive dock doors cannot be assigned to new appointments
-- do not bypass tenant filters
+- all business records belong to a tenant
+- warehouse must belong to active tenant
+- dock door must belong to selected warehouse and tenant
+- appointments must not cross tenant boundaries
+- inactive dock doors cannot be used for new appointments
 
 ---
 
-## Safe Change Strategy
+## UI rules
 
-When implementing a task:
-1. understand existing docs and code
-2. keep the change scoped to the task
-3. prefer minimum viable implementation
-4. validate locally with repository scripts
-5. summarize what changed and what was verified
-
-When blocked:
-- describe the blocker clearly
-- avoid guessing hidden business rules
-- make the smallest safe progress possible
+- keep forms simple
+- keep operational screens readable
+- show status clearly
+- make validation messages explicit
+- do not over-design the UI
+- usability matters more than visual polish in this PoC
 
 ---
 
-## Done Criteria
+## Testing rules
 
-A task is only done when:
+When behavior changes:
+- update or add tests where practical
+- verify validation logic
+- verify critical user flows when UI changes
+
+Before considering a task done:
+- build passes if build exists
+- lint passes if lint exists
+- tests pass if tests exist
+- app still boots if setup/runtime changed
+
+Do not claim a validation step was performed if it was not actually run.
+
+---
+
+## Documentation rules
+
+Update documentation only when one of these changed:
+- setup or run instructions
+- behavior
+- API contract
+- domain rules
+- architecture boundaries
+
+Do not rewrite unrelated docs.
+
+---
+
+## Git rules
+
+- never work directly on main
+- create a feature branch before making changes
+- branch name format:
+
+  feat/<issue-identifier>-<short-kebab-scope>
+
+  examples:
+  - feat/DOC-6-schema-and-seed
+  - feat/DOC-7-demo-auth-and-tenant-context
+  - feat/DOC-8-warehouse-and-dock-door-management
+
+- commit message format:
+
+  <issue-identifier>: <short imperative summary>
+
+  examples:
+  - DOC-6: add schema and seed data
+  - DOC-7: add demo auth and tenant context
+
+If branch creation fails, explain clearly and stop.
+
+---
+
+## PoC merge rule
+
+This repository is temporarily in PoC mode.
+
+After implementation is complete and validated:
+- push the feature branch
+- merge it into main
+- push main
+
+This is temporary.
+In a normal workflow this must become PR-based review.
+
+---
+
+## Done criteria
+
+A task is done only when:
 - requested scope is implemented
-- code is readable
-- lint/build/tests pass
-- docs are updated if needed
-- changes are ready for review
+- the implementation is readable
+- validation steps were actually run where available
+- docs are updated if necessary
+- branch, commit, and push were completed
+- final summary is clear and concise
+
+---
+
+## When blocked
+
+If blocked:
+- explain what is blocked
+- explain why
+- list what was completed
+- list the smallest next action
+
+Do not fabricate secrets, credentials, system behavior, or missing requirements.
