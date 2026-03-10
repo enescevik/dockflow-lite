@@ -10,6 +10,7 @@ workspace:
 hooks:
   after_create: |
     git clone --depth 1 "$SOURCE_REPO_URL" .
+    git fetch --all --prune
     if [ -f package-lock.json ]; then npm ci; fi
     if [ -f pnpm-lock.yaml ]; then corepack enable && pnpm install; fi
     if [ -f yarn.lock ]; then yarn install --frozen-lockfile; fi
@@ -84,15 +85,46 @@ Allowed transitions:
 
 Git workflow rules:
 - Never work directly on main.
-- Before changing code, create a feature branch for the issue.
-- Branch format:
-  feat/<issue-identifier>-<short-description>
-  Example: feat/DOC-5-bootstrap
-- Perform all code changes on that branch.
-- When implementation is complete:
-  1. git add .
-  2. git commit -m "<issue-identifier>: implement issue requirements"
-  3. git push origin <branch-name>
+- Before changing any file, create a feature branch immediately.
+- Determine the exact Linear issue identifier first.
+- Use this branch naming format exactly:
+
+  feat/<ISSUE-ID>-<SHORT-KEBAB-SCOPE>
+
+- Rules for branch naming:
+  - ISSUE-ID must match the Linear issue identifier exactly, including uppercase letters and hyphen
+  - SHORT-KEBAB-SCOPE must be 2 to 6 lowercase kebab-case words
+  - do not use spaces
+  - do not use generic names like update, fix, changes, work, task
+  - the scope must describe the concrete implementation area
+
+Valid examples:
+- feat/DOC-6-schema-and-seed
+- feat/DOC-7-demo-auth-and-tenant-context
+- feat/DOC-9-appointment-creation
+- feat/DOC-13-dashboard-metrics
+
+Invalid examples:
+- feat/doc-6
+- feat/DOC6-schema
+- feat/DOC-6-work
+- branch1
+- update-main
+
+Commit rules:
+- Commit message format:
+
+  <ISSUE-ID>: <short imperative summary>
+
+Valid examples:
+- DOC-6: add schema and seed data
+- DOC-7: add demo auth and tenant context
+- DOC-9: implement appointment creation flow
+
+If branch creation fails, stop and report the problem.
+Do not continue implementation on main under any condition.
+Do not leave work uncommitted.
+Do not finish the task without branch creation and at least one commit if files changed.
 
 PoC-only merge rule:
 - This repository is currently in PoC mode.
@@ -104,6 +136,12 @@ PoC-only merge rule:
   4. git push origin main
 - After merge, the feature branch may be deleted.
 - This rule is temporary and should not be used in production workflows.
+
+If merge to main causes conflicts:
+- stop
+- do not force the merge
+- summarize the conflict clearly
+- leave the branch pushed for human resolution
 
 Validation before handoff:
 1. run lint if available
