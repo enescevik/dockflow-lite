@@ -60,19 +60,25 @@ Appointment statuses:
 npm install
 ```
 
-2. Boot everything (web + api + postgres) with one command:
+2. Optional: copy the local environment template if you want to override defaults outside Docker:
+
+```bash
+cp .env.example .env
+```
+
+3. Boot everything (web + api + postgres) with one command:
 
 ```bash
 npm run local:boot
 ```
 
-3. Open the app:
+4. Open the app:
 
 - Web: <http://localhost:3000>
 - API health: <http://localhost:3001/health>
 - Demo auth placeholder: <http://localhost:3001/auth/demo>
 
-4. Stop and clean containers:
+5. Stop and clean containers:
 
 ```bash
 npm run local:down
@@ -90,5 +96,6 @@ npm run test:e2e    # Run Playwright smoke test scaffold (web must be running)
 
 ## Notes
 
-- API container runs the seed script at startup for demo convenience.
+- API container boots the schema and reruns the demo seed script at startup for demo convenience.
+- Demo seed data creates tenants, warehouses, dock doors, and appointments so the home page has visible data immediately after `npm run local:boot`.
 - Demo auth is intentionally simple and local-only for MVP phase.

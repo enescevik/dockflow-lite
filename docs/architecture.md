@@ -16,6 +16,7 @@ DockFlow Lite uses a monorepo with two applications and one database.
 
 ## Data Model
 - `tenant` (1) -> (N) `warehouse`
+- `tenant` (1) -> (N) `dock_door`
 - `warehouse` (1) -> (N) `dock_door`
 - `appointment` references tenant, warehouse, and dock_door
 
@@ -31,4 +32,4 @@ Docker Compose starts:
 - `api` (NestJS)
 - `web` (Next.js)
 
-`api` runs seed on startup so demo data is available immediately.
+`api` runs schema bootstrap on start and then executes the demo seed script so local data is available immediately.
