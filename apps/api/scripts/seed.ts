@@ -18,7 +18,6 @@ async function connectWithRetry(retries: number): Promise<Pool> {
       if (attempt === retries) {
         throw error;
       }
-      // eslint-disable-next-line no-console
       console.log(`DB not ready yet (attempt ${attempt}/${retries}), retrying...`);
       await pause(1500);
     }
@@ -63,24 +62,24 @@ async function runSeed() {
     const atlanta = atlantaResult.rows[0];
 
     const dallasDoors = await pool.query<{ id: number }>(
-      `INSERT INTO dock_door (warehouse_id, name)
-       VALUES ($1, 'D-01'), ($1, 'D-02'), ($1, 'D-03')
+      `INSERT INTO dock_door (tenant_id, warehouse_id, name)
+       VALUES ($1, $2, 'D-01'), ($1, $2, 'D-02'), ($1, $2, 'D-03')
        RETURNING id`,
-      [dallas.id],
+      [tenantA.id, dallas.id],
     );
 
-    const chicagoDoors = await pool.query<{ id: number }>(
-      `INSERT INTO dock_door (warehouse_id, name)
-       VALUES ($1, 'C-01'), ($1, 'C-02')
+    await pool.query<{ id: number }>(
+      `INSERT INTO dock_door (tenant_id, warehouse_id, name)
+       VALUES ($1, $2, 'C-01'), ($1, $2, 'C-02')
        RETURNING id`,
-      [chicago.id],
+      [tenantA.id, chicago.id],
     );
 
     const atlantaDoors = await pool.query<{ id: number }>(
-      `INSERT INTO dock_door (warehouse_id, name)
-       VALUES ($1, 'A-01'), ($1, 'A-02')
+      `INSERT INTO dock_door (tenant_id, warehouse_id, name)
+       VALUES ($1, $2, 'A-01'), ($1, $2, 'A-02')
        RETURNING id`,
-      [atlanta.id],
+      [tenantB.id, atlanta.id],
     );
 
     await pool.query(
@@ -103,12 +102,10 @@ async function runSeed() {
         atlanta.id,
         atlantaDoors.rows[0].id,
         atlantaDoors.rows[1].id,
-        atlantaDoors.rows[0].id,
       ],
     );
 
     await pool.query('COMMIT');
-    // eslint-disable-next-line no-console
     console.log('Seed complete: demo tenants, warehouses, dock doors, and appointments inserted.');
   } catch (error) {
     await pool.query('ROLLBACK');
@@ -119,7 +116,6 @@ async function runSeed() {
 }
 
 runSeed().catch((error) => {
-  // eslint-disable-next-line no-console
   console.error('Seed failed:', error);
   process.exit(1);
 });
